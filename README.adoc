@@ -1,0 +1,1 @@
+Short cheatsheet of software design patterns.

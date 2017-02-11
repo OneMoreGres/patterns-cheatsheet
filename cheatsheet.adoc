@@ -1,0 +1,7 @@
+= Design patterns
+:experimental:
+:source-highlighter: highlightjs
+:source-language: cpp
+:stylesheet: cheatsheet.css
+:noheader:
+:nofooter:
