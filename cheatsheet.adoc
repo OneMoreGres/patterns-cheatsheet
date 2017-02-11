@@ -5,3 +5,177 @@
 :stylesheet: cheatsheet.css
 :noheader:
 :nofooter:
+
+
+== Creational
+
+=== Abstract factory
+
+create different hierarchies
+```
+struct OrcFactory: ArmyFactory {
+  Fighter* createFighter () override {
+    return new OrcFighter;
+  }
+  Officer* createOfficer () override {
+    return new OrcOfficer;
+  }
+}
+```
+
+=== Factory method
+
+create single hierarchy
+```
+struct OrcBlacksmith : Blacksmith {
+  Weapon* createWeapon (WeaponType) override;
+}
+```
+
+
+=== Builder
+
+create object from parts
+```
+struct OrcBuilder {
+  void setWeapon (Weapon);
+  void setArmor (Armor);
+  Orc build ();
+}
+```
+
+=== Step builder
+
+wizard-like object creation
+```
+struct OrcStepBuilder : TypeStep, WeaponStep, BuildStep {
+  WeaponStep* setType (Type) override;
+
+  BuildStep* setWeapon (Type) override;
+  BuildStep* unarmed () override;
+
+  Orc build () override;
+}
+```
+
+// === Factory kit ?
+
+// === Lazy initialization ?
+
+=== Multiton
+
+limit object variety
+```
+struct District {
+  static District& get (Name name) {
+    static map<Name,District> districts;
+    return districts[name];
+  }
+}
+```
+
+=== Object mother
+
+create preset objects
+```
+struct OrcObjectMother {
+  Orc* createAngry ();
+  Orc* createScared ();
+}
+```
+
+=== Object pool
+
+store expensive objects
+```
+struct Armory {
+  Weapon* acquire ();
+  void release (Weapon* returned);
+private:
+  set<Weapon*> weapons;
+  set<Weapon*> taken;
+} 
+```
+
+
+=== Property
+
+dynamic properties set
+```
+struct Orc : Prototype {
+  bool set (Stat, Value) override;
+  bool has (Stat) override;
+  Value get (Stat) override;
+  void remove (Stat) override;
+
+  void waagh ();
+private:
+  map<Stat, Value> properties;
+}
+
+```
+
+
+=== Prototype
+
+only concrete instance knows its full state
+```
+struct Monster {
+  virtual Monster* clone () = 0;
+}
+struct MonsterFactory {
+  Monster* create (MonsterType type) {
+    return prototypes[type]->clone ();
+  }
+private:
+  map<MonsterType, Monster*> prototypes;
+}
+```
+
+
+=== Resource acquisition is initialization (RAII)
+
+prevent resource leaks
+```
+struct OrcShaman {
+  OrcShaman () {
+    ManaSource::addLeacher (this);
+  }
+  ~OrcShaman () {
+    ManaSounrce::removeLeacher (this);
+  }
+}
+```
+
+
+=== Singleton
+
+allow only one instance
+```
+struct EarthCore {
+  static EarthCore& instance () {
+    static EarthCore core;
+    return core;
+  }
+private:
+  EarthCore ();
+}
+```
+
+
+=== MonoState
+
+non global singleton replacement
+```
+struct Balancer {
+  void serve (Request) {
+    Server* server = nextServer ();
+    server->serve (Request);
+  }
+private:
+  int lastServed;
+  list<Server*> servers;
+}
+```
+
+// === Value object?
