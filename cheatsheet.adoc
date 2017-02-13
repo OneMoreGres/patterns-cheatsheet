@@ -49,12 +49,12 @@ struct OrcBuilder {
 wizard-like object creation
 ```
 struct OrcStepBuilder : TypeStep, WeaponStep, BuildStep {
-  WeaponStep* setType (Type) override;
+  WeaponStep* setType (Type) override; // TypeStep
 
-  BuildStep* setWeapon (Type) override;
-  BuildStep* unarmed () override;
+  BuildStep* setWeapon (Type) override; // WeaponStep
+  BuildStep* unarmed () override; // WeaponStep
 
-  Orc build () override;
+  Orc build () override; // BuildStep
 }
 ```
 
@@ -179,3 +179,204 @@ private:
 ```
 
 // === Value object?
+
+
+
+== Structural
+
+
+=== Abstract document
+
+dynamically manage properties
+```
+struct MonsterDocument {
+  void set (Type, Value);
+  Value get (Type);
+private:
+  map<Type, Value> properties;
+}
+struct Orc : MonsterDocument, HasWeapon {
+  Weapon getWeapon () override { // HasWeapon
+    return static_cast<Weapon>(get(Type::Weapon));
+  }
+}
+```
+
+=== Adapter
+
+adapt foreign api
+```
+struct OrcMonsterAdapter : Monster, Orc {
+  void attack () override {
+    Orc::smash ();
+  }
+}
+```
+
+=== Bridge
+
+ease separate changes of abstraction and implementation
+```
+struct Orc : Creature {
+  void attackImpl () override;
+}
+struct Fighter : Monster {
+  Fighter (Creature* impl);
+  void attack () override {
+    impl->attackImpl ();
+  }
+}
+```
+
+
+=== Composite
+
+treat composite object same way as single
+```
+struct Kingdom : Area {
+  double square () override {
+    return accumulate (children, Area::square);
+  }
+  void addArea (Area*) override;
+private:
+  list<Area*> children;
+}
+kingdom.addArea (new NothernRealm);
+```
+
+=== Decorator
+
+dynamically add/remove behavior to object
+```
+struct WallsDecorator : public Town {
+  WallsDecorator (Town* decorated);
+  int strength () override {
+    return decorated->strength () + 10;
+  }
+}
+Town* castle = new WallsDecorator (new Town ());
+```
+
+=== Event aggregator
+
+gather all events in one place
+```
+struct Aggregator {
+  void registerSubscriber (Subscriber);
+  void publish (Event event) {
+    for_each (subscribers, Subscriber::handle (event));
+  }
+}
+```
+
+=== Extension object
+
+provide additional interface to object without changing hierarchy
+```
+struct Kingdom {
+  Kingdom (Capital*);
+  Capital* getCapitalExtension ();
+}
+Kingdom kingdom (new GuardedCapital);
+```
+
+=== Facade
+
+single interface for several subsystems
+```
+struct Army {
+  void attack () {
+    officers->makeOrders ();
+    fighters->followOrders ();
+    shamans->prey ();
+  }
+}
+```
+
+=== Flyweight
+
+many similar objects with shared state
+```
+struct Forge {
+  Weapon craft (Type type) {
+    return Weapon (stats[type]);
+  }
+private:
+  map<Type, WeaponStats*> stats;
+}
+```
+
+=== Front controller
+
+handle all requests in one place
+```
+struct Controller {
+  void handle (Request request) {
+    getProcessor ().process (request);
+  }
+}
+```
+
+=== Marker
+
+indicate class behaviour
+```
+struct Orc : Agressive {
+}
+if (dynamic_cast<Agressive*>(monster)) monster->attack ();
+```
+
+=== Module
+
+group connected functions
+```
+struct ConsoleModule {
+  void prepare ();
+  void unprepare ();
+  static ConsoleModule& instance ();
+  void print (variant);
+  variant scan ();
+}
+```
+
+=== Proxy
+
+add functionality to interface
+```
+struct GuardedArmory : Armory {
+  void enter (Monster monster) override {
+    if (looksLikeOrc (monster)) armory->enter (monster);
+    else logFailure (monster);
+  }
+private:
+  Armory *armory;
+}
+```
+
+=== Servant
+
+add behaviour to other classes
+```
+struct Blacksmith {
+  void sharpenWeapon (Fighter*);
+}
+```
+
+=== Service locator
+
+ease and cache service discovery
+```
+struct OrcIntelligence {
+  static Area locate (Faction faction) {
+    if (!cache.contains (faction)) {
+      cache[faction] = lookFor (faction);
+    }
+    return cache[faction];
+  }
+private:
+  LastSeen<Faction, Area> cache;
+}
+```
+
+
+== Behavioral
