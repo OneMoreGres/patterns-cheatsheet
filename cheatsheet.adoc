@@ -353,15 +353,6 @@ private:
 }
 ```
 
-=== Servant
-
-add behaviour to other classes
-```
-struct Blacksmith {
-  void sharpenWeapon (Fighter*);
-}
-```
-
 === Service locator
 
 ease and cache service discovery
@@ -380,3 +371,297 @@ private:
 
 
 == Behavioral
+
+
+=== Blackboard
+
+integrate many modules in complex strategy
+```
+struct IntelligenceControl {
+  void updateDisposition () {
+    for_each (scouts, KnowledgeSource::updateBlackboard (worldMap));
+    correctConflicts (worldMap);
+    killLiars (scoutsAndShamans);
+  }
+private:
+  Blackboard worldMap;
+  list<KnowledgeSource*> scoutsAndShamans;
+}
+```
+
+=== Chain of responsibility
+
+concrete unknown handler for concrete request
+```
+struct OrcFighter : RequestHandler {
+  void handle (Request request) override {
+    if (request.type == Type::Attack) {
+      attack ();
+      if (++request.attackers > 10) return;
+    }
+    RequestHandler::nextHandler ()->handle (request);
+  }
+}
+```
+
+=== Command
+
+hold all required data to perform/abort event
+```
+struct MoveArmy : Command {
+  MoveArmy (Area from, Area to);
+  void execute () override {
+    from.removeArmy (this);
+    to.addArmy (this);
+  }
+}
+```
+
+=== Delegation
+
+provide functionality via composite part
+```
+struct OrcFighter {
+  Size weaponSize () constq {
+    return weapon.size ();
+  }
+}
+```
+
+=== Dependency injection
+
+get constructed dependency instead of create by self
+```
+struct OrcFighter {
+  OrcFighter (AbstractArmor* armor);
+  void hit (Damage damage) {
+    health -= armor->reduceDamage (damage);
+  }
+}
+```
+
+=== Feature toggle
+
+dynamically enable/disable code branches
+```
+struct OrcFighter {
+  void attack () {
+    if (FeatureManager::isEnabled (Sound)) {
+      attackWithRoar ();
+    }
+    else {
+      simpleAttack ();
+    }
+    if (weapon.isOneHanded ()) {
+      taunt ();
+    }
+  }
+}
+```
+
+=== Intercepting filter
+
+add pre/post-processing to requests
+```
+struct OrcFighter : Filter {
+  void execute (Command letter) override {
+    laughtLoudly (command);
+  }
+}
+struct FilterManager {
+  FilterManager (Target target);
+  void execute (Command letter) {
+    for_each (filters, Filter::execute (letter));
+    target.deliver (letter);
+  }
+private:
+  list<Filter*> filters;
+}
+```
+
+=== Interpreter
+
+handle asbtract syntax tree of domain specific language
+```
+struct Plus : Expression {
+  Plus (Expression& left, Expression& right);
+  Value interpret () override {
+    return left.interpret () + right.interpret ();
+  }
+}
+```
+
+=== Iterator
+
+traverse container without knowing its structure
+```
+struct OrcIterator : Iterator {
+  OrcIterator (OrcArmy::fighters* firstOrc) : currentOrc (firstOrc);
+  Iterator& operator++ () { // next
+    ++currentOrc;
+    return *this;
+  };
+  Iterator& operator-- (); // previous
+  Orc& operator* (); // current value
+  bool operator== ();
+}
+```
+
+=== Mediator
+
+hide objects interacion details
+```
+struct OrcTrainingCamp {
+  void train (Orc& trainer, Orc& apprentice) {
+    if (trainer.isShaman () && apprentice.isShaman ()) {
+      apprentice.raiseSkill (trainer.skill ());
+    }
+    ...
+  }
+}
+```
+
+=== Memento
+
+save/restore object's state
+```
+struct Orc {
+  Memento state () { return Memento {this->health}; }
+  void restore (Memento memento) { this->health = memento.health; }
+
+  class Memento {
+    int health;
+    friend class Orc;
+  }
+}
+```
+
+=== Null object
+
+specific object for empty (null) behaviour
+```
+struct FakeOrc : Orc {
+  void attack () override {}
+}
+Orc* makeNewOrc () {
+  if (!reachedLimit ()) return new Orc;
+  return new FakeOrc;
+}
+```
+
+=== Observer
+
+notify subscribers about publisher events
+```
+struct CastleObserver : Observer {
+  void addSubscriber (Orc& subscriber);
+  void notify (Event& event) override {
+    for_each (subscribers, Orc::handle (event));
+  }
+}
+
+struct Castle : Observable {
+  void addObserver (Observer) override;
+  void openDoors () {
+    DoorOpenEvent event;
+    for_each (observers, Observer::notify (event));
+  }
+}
+```
+
+=== Servant
+
+add behaviour to other classes
+```
+struct Blacksmith {
+  void sharpenWeapon (Fighter*);
+}
+```
+
+=== Specification
+
+filter of validate objects with dynamic rules
+```
+struct SkillCheck : Specification {
+  bool check (Orc& orc) override {
+    return skill > 10;
+  }
+}
+struct HealthCheck : Specification {
+  bool check (Orc& orc) override {
+    return health > 90;
+  }
+}
+void recruitCandidate (Orc& orc) {
+  AndSpecification complex = SkillCheck ().and (HealthCheck());
+  if (complex.check (orc)) {
+    assignForImportantMission (orc);
+  }
+}
+```
+
+=== State
+
+change behaviour by switching between object's internal states
+```
+struct Orc {
+  void hit (Damage damage) {
+    health -= damage;
+    if (health < 10) setState (new ScaredState);
+  }
+  void attack () {
+    state->attack ();
+  }
+}
+struct ScaredState : State {
+  void attack () override {
+    owner->flee ();
+  }
+}
+```
+
+=== Strategy
+
+use group of interchangeable algorithms
+```
+struct Orc {
+  void attack () {strategy->attack ();}
+private:
+  AttackStrategy* strategy;
+}
+```
+
+=== Template method
+
+redefine parts of algorithms in subclasses
+```
+struct Orc {
+  Target* chooseTarget ();
+  virtual hitTarget () = 0;
+  void stepBack ();
+
+  void attack () {
+    auto target = chooseTarget ();
+    hitTarget (target);
+    stepBack ();
+  }
+}
+```
+
+=== Visitor
+
+apply operation on structure's elements with different interfaces
+```
+struct ArmyMeleeSkill : Visitor {
+  void visit (Fighter& fighter) override {
+    skill += fighter.skill ();
+  }
+  void visit (Shaman& shaman) override {
+  }
+}
+struct Fighter : Visitable {
+  void accept (Visitor& visitor) override {
+    visitor.visit (*this);
+  }
+}
+```
