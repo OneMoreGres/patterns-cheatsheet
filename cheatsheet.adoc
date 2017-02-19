@@ -665,3 +665,286 @@ struct Fighter : Visitable {
   }
 }
 ```
+
+
+
+== Concurrency
+
+=== Active object
+
+separate method execution and invocation threads
+```
+struct ActiveObject {
+  void addCommand (Command command) {
+    enqueue (command);
+  }
+  ~ActiveObject () {
+    Thread thread (&ActiveObject::run, this);
+    thread.join ();
+  }
+private:
+  void run () {
+    processCommands ();
+  }
+}
+```
+
+=== Asynchronous method invocation
+
+non-blocking call method in remote thread
+```
+struct Shaman {
+  void resurrect (Creature& creature) {
+    SoulFinder& soulFinder = ghostWorld.askToSoul (creature);
+    eadAndDrink ();
+    if (!soulFinder.isReady ()) goEatAndDrink ();
+    ghostWorld.getFoundSoul (soulFinder); // blocks if not ready
+  }
+}
+```
+
+=== Balking
+
+ignore call until ready
+```
+struct Barracks {
+  Fighter* trainRecruit () {
+    MutexLocker lock;
+    if (recruits.isEmpty()) return nullptr;
+    return train (recruits.takeFirst ());
+  }
+  void addRecruit (Recruit recruit) {
+    MutexLocker lock;
+    recruits << recruit;
+  }
+}
+```
+
+=== Binding properties
+
+synchronize several properties
+```
+template<class T>
+struct Property<T> {
+  void bind (Property<T>* other);
+  void set (T value) {
+    preventInfiniteRecursionIfBoundTwoWay ();
+    other->set (value);
+  }
+}
+house.isWarmProperty.bind (&houseHeater.isOnProperty);
+```
+
+=== Blockchain
+
+time ordered appendable chain of verified transaction blocks
+```
+struct OrcHistorian : BlockchainNode {
+  bool addLegend (Legend legend) {
+    if (verify (legend)) {
+      if (allAgree (knownHistoricans, &OrcHistorian::addLegend, legend)) {
+        legends << legend;
+        return true;
+      }
+    }
+    return false;
+  }
+private:
+  list<OrcHistorian> knownHistoricans;
+  list<Legend> legends;
+}
+```
+
+=== Double-checked locking
+
+reduce locking overhead for conditional
+```
+struct Tavern {
+  void close () {
+    if (state == Empty) {
+      MutexLocker lock;
+      if (state == Empty) {
+        state = Closed;
+        return;
+      }
+    }
+    serveCustomers ();
+  }
+}
+```
+
+=== Guarded suspension
+
+block call until ready
+```
+struct Barracks {
+  Fighter* trainRecruit () {
+    while (true) {
+      MutexLocker lock;
+      if (!recruits.isEmpty()) return train (recruits.takeFirst ());
+      wait ();
+    }
+  }
+  void addRecruit (Recruit recruit) {
+    MutexLocker lock;
+    recruits << recruit;
+  }
+}
+```
+
+=== Join
+
+pipleine of sync/async messaging channels
+```
+using Channel = Join;
+using Pipe = Chord;
+struct NewVisitor : Channel {
+  void put (Message* visitor) override;
+  Object* get () override;
+}
+struct FreeStaff : Channel {
+  void put (Message* staff) override;
+  Object* get () override;
+}
+struct Tavern : Pipe {
+  void serve (Object* visitor);
+}
+Tavern tavern = Tavern ().when (visitorChannelThread1).and (staffChannelThread2).do (Tavern::serve);
+```
+
+=== Lock (Mutex)
+
+block if resource is busy
+```
+struct Tavern {
+  void enter () {
+    lock.acquire ();
+    ++customers;
+    lock.release ();
+  }
+  void leave () {
+  lock.acquire ();
+    --customers;
+    lock.release ();
+  }
+}
+```
+
+=== Monitor object
+
+conditional access to resource
+```
+struct Tavern {
+  void enter () {
+    lock.acquire ();
+    while (isFull ()) {
+      monitor.wait (lock, customersChanged); // release on sleep, acquire on wake
+    }
+    ++customers;
+    lock.release ();
+  }
+  void leave () {
+    lock.acquire ();
+    --customers;
+    monitor.wakeOne (customersChanged);
+    lock.release ();
+  }
+}
+```
+
+=== Proactor
+
+gather async requests and pass them to handlers asynchronously
+```
+using Mine, Blacksmith = AsyncProcessor;
+struct Forge {
+  void exec () {
+    forEach (mines, &Mine::asyncDig,
+      static_cast<CompleteHandler>([this](Iron iron) {craft (iron);}));
+  }
+  void craft (Iron iron) {
+    blacksmiths.next ()->asyncCraft (iron,
+      static_cast<CompleteHandler>([this](Weapon weapon) {putOnShelve (weapon);}));
+  }
+  void putOnShelve (Weapon);
+}
+```
+
+=== Reactor
+
+gather async requests and pass them to handlers synchronously
+```
+using Mine, Blacksmith = AsyncProcessor;
+struct Forge {
+  void exec () {
+    while (true) {
+      for (Iron& iron: getReadyIronFromAllMines ()) {
+        craft (iron);
+      }
+      waitForMoreIron (timeout);
+    }
+  }
+  void craft (Iron iron) {
+    Weapon weapon = blacksmiths.next ()->craft (iron);
+    putOnShelve (weapon);
+  }
+  void putOnShelve (Weapon);
+}
+```
+
+=== Read-write lock
+
+allow read if noone is writing
+```
+struct Tavern {
+  list<Customer> customers () const {
+    readWriteLock.readLock (); // blocks if someone is writing
+    return customers;
+  }
+  void addCustomer (Customer customer) {
+    readWriteLock.writeLock (); // blocks if someeone is reading
+    customers << customer;
+  }
+}
+```
+
+=== Scheduler
+
+control resource usage time
+```
+struct Forge : Scheduler {
+  void requestFurnaceAccess (Blacksmith user) {
+    plan.add (user);
+  }
+  void exec () {
+    while (true) {
+      Blacksmith& currentUser = furnace.user ();
+      if (!currentUser.isFinished ()) {
+        currentUser.pause ();
+        plan.add (currentUser);
+      }
+      Blacksmith& nextUser = plan.takeNext ();
+      furnace.setUser (nextUser);
+      waitForNextEvent (plan);
+    }
+  }
+}
+```
+
+=== Thread pool
+
+execute task in idle thread from pool
+```
+using Staff = Thread;
+struct Tavern {
+  void addVisitor (Visitor visitor) {
+    queue << new ServeEvent (visitor);
+    if (gotIdleStaff ()) processQueue ();
+  }
+  void processQueue () {
+  while (Staff* staff = nextIdleStaff ()) {
+    if (Event* event = queue.takeNext ()) staff.run (event);
+    else break;
+  }
+}
+```
