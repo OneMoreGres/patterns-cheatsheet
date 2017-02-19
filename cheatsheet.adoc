@@ -23,6 +23,19 @@ struct OrcFactory: ArmyFactory {
 }
 ```
 
+=== Active record
+
+manupilate single row in database
+```
+struct Orc {
+  void save () {
+    execSql ("insert into orcs values (?,?,?)", bindValues);
+  }
+  void remove ();
+  static Orc* find (Name name);
+}
+```
+
 === Factory method
 
 create single hierarchy
@@ -58,9 +71,25 @@ struct OrcStepBuilder : TypeStep, WeaponStep, BuildStep {
 }
 ```
 
-// === Factory kit ?
 
-// === Lazy initialization ?
+=== Lazy initialization
+
+create object only when it is needed
+```
+struct Castle {
+  Castle () : throneRoom (nullptr);
+  void enterThroneRoom (Character character) {
+    getThroneRoom ().enter (character);
+  }
+private:
+  ThroneRoom& getThroneRoom () {
+    if (!throneRoom) {
+      throneRoom = new ThroneRoom;
+    }
+    return throneRoom;
+  }
+}
+```
 
 === Multiton
 
@@ -177,8 +206,6 @@ private:
   list<Server*> servers;
 }
 ```
-
-// === Value object?
 
 
 
@@ -324,6 +351,25 @@ indicate class behaviour
 struct Orc : Agressive {
 }
 if (dynamic_cast<Agressive*>(monster)) monster->attack ();
+```
+
+=== Mock object
+
+simulate only interested real object behaviour for testing
+```
+struct Shaman {
+  Spell* castSpell () {
+    if (enoughMana () && correctMoonPhase () && isRested () ..) {
+      return new Spell;
+    }
+    return nullptr;
+  }
+}
+struct ShamanMock {
+  Spell* castSpell () {
+    return new Spell;
+  }
+}
 ```
 
 === Module
@@ -536,6 +582,20 @@ struct Orc {
 }
 ```
 
+=== Method chaining
+
+group several method calls in one expression
+```
+struct Orc {
+  Orc& setName (Name name) {
+    this->name = name;
+    return *this;
+  }
+  Orc& setWeapon (Weapon);
+}
+Orc orc = Orc().setName ("Named").setWeapon (Sword());
+```
+
 === Null object
 
 specific object for empty (null) behaviour
@@ -645,6 +705,21 @@ struct Orc {
     hitTarget (target);
     stepBack ();
   }
+}
+```
+
+=== Type tunnel
+
+unified processing of different types
+```
+struct Dragon {
+  template<class T>
+  void eat (T t) {
+    eatImpl (makeFood (t));
+  }
+  Food makeFood (Orc);
+  Food makeFood (Dwarf);
+  void eatImpl (Food);
 }
 ```
 
