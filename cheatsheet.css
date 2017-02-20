@@ -184,11 +184,11 @@ a:hover, a:focus { color: #111111; }
 a img { border: none; }
 
 /* Default paragraph styles */
-p { font-family: inherit; font-weight: normal; font-size: 1em; line-height: 1.5; margin-bottom: 1.25em; text-rendering: optimizeLegibility; }
+p { font-family: inherit; font-weight: normal; font-size: 1em; line-height: 1.5; text-rendering: optimizeLegibility; }
 p aside { font-size: 0.875em; line-height: 1.35; font-style: italic; }
 
 /* Default header styles */
-h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { font-family: ff-meta-web-pro-1, ff-meta-web-pro-2, Arial, "Helvetica Neue", sans-serif; font-weight: bold; font-style: normal; color: #465158; text-rendering: optimizeLegibility; margin-top: 1em; margin-bottom: 0.5em; line-height: 1.2125em; }
+h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { font-family: ff-meta-web-pro-1, ff-meta-web-pro-2, Arial, "Helvetica Neue", sans-serif; font-weight: bold; font-style: normal; color: #465158; text-rendering: optimizeLegibility; line-height: 1.2125em; }
 h1 small, h2 small, h3 small, #toctitle small, .sidebarblock > .content > .title small, h4 small, h5 small, h6 small { font-size: 60%; color: #909ea7; line-height: 0; }
 
 h1 { font-size: 2.125em; }
@@ -258,7 +258,7 @@ blockquote, blockquote p { line-height: 1.5; color: #909ea7; }
 
 @media only screen and (min-width: 768px) { h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { line-height: 1.4; }
   h1 { font-size: 2.75em; }
-  h2 { font-size: 2.3125em; }
+  h2 { font-size: 1.6875em; }
   h3, #toctitle, .sidebarblock > .content > .title { font-size: 1.6875em; }
   h4 { font-size: 1.4375em; } }
 /* Tables */
@@ -361,9 +361,7 @@ p a > code:hover { color: #373737; }
 
 #footer-text { color: white; line-height: 1.35; }
 
-.sect1 { padding-bottom: 0.625em; }
 
-@media only screen and (min-width: 768px) { .sect1 { padding-bottom: 1.25em; } }
 .sect1 + .sect1 { border-top: 1px solid #dddddd; }
 
 #content h1 > a.anchor, h2 > a.anchor, h3 > a.anchor, #toctitle > a.anchor, .sidebarblock > .content > .title > a.anchor, h4 > a.anchor, h5 > a.anchor, h6 > a.anchor { position: absolute; z-index: 1001; width: 1.5ex; margin-left: -1.5ex; display: block; text-decoration: none !important; visibility: hidden; text-align: center; font-weight: normal; }
@@ -685,7 +683,7 @@ b.conum * { color: inherit !important; }
 
 h4 { color: #6c818f; }
 
-.literalblock > .content > pre, .listingblock > .content > pre { -webkit-border-radius: 6px; border-radius: 6px; margin-left: 2em; margin-right: 2em; }
+.literalblock > .content > pre, .listingblock > .content > pre { -webkit-border-radius: 6px; border-radius: 6px; margin-left: 0em; margin-right: 0.5em; }
 
 .admonitionblock { margin-left: 2em; margin-right: 2em; }
 .admonitionblock > table { border: 1px solid #609060; border-top-width: 1.5em; background-color: #e9ffe9; border-collapse: separate; -webkit-border-radius: 0; border-radius: 0; }
@@ -701,3 +699,5 @@ table.tableblock.grid-all th.tableblock, table.tableblock.grid-all td.tableblock
 #footer { background-color: #465158; padding: 2em; }
 
 #footer-text { color: #eee; font-size: 0.8em; text-align: center; }
+
+span.pattern-type { font-size: 0.55em; }
