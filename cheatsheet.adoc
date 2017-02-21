@@ -6,6 +6,10 @@
 :noheader:
 :nofooter:
 
+:creational-type: creational
+:structural-type: structural
+:behavioral-type: behavioral
+:concurrency-type: concurrency
 
 
 [cols="6*"]
@@ -14,7 +18,7 @@
 // Creational
 
 a|
-== Abstract factory [pattern-type]#creational#
+== Abstract factory [pattern-type]#{creational-type}#
 
 create different hierarchies
 ```
@@ -29,7 +33,7 @@ struct OrcFactory: ArmyFactory {
 ```
 
 a|
-== Active record [pattern-type]#creational#
+== Active record [pattern-type]#{creational-type}#
 
 manupilate single row in database
 ```
@@ -43,7 +47,7 @@ struct Orc {
 ```
 
 a|
-== Factory method [pattern-type]#creational#
+== Factory method [pattern-type]#{creational-type}#
 
 create single hierarchy
 ```
@@ -53,7 +57,7 @@ struct OrcBlacksmith : Blacksmith {
 ```
 
 a|
-== Builder [pattern-type]#creational#
+== Builder [pattern-type]#{creational-type}#
 
 create object from parts
 ```
@@ -65,7 +69,7 @@ struct OrcBuilder {
 ```
 
 a|
-== Step builder [pattern-type]#creational#
+== Step builder [pattern-type]#{creational-type}#
 
 wizard-like object creation
 ```
@@ -80,7 +84,7 @@ struct OrcStepBuilder : TypeStep, WeaponStep, BuildStep {
 ```
 
 a|
-== Lazy initialization [pattern-type]#creational#
+== Lazy initialization [pattern-type]#{creational-type}#
 
 create object only when it is needed
 ```
@@ -100,7 +104,7 @@ private:
 ```
 
 a|
-== Multiton [pattern-type]#creational#
+== Multiton [pattern-type]#{creational-type}#
 
 limit object variety
 ```
@@ -113,7 +117,7 @@ struct District {
 ```
 
 a|
-== Object mother [pattern-type]#creational#
+== Object mother [pattern-type]#{creational-type}#
 
 create preset objects
 ```
@@ -124,7 +128,7 @@ struct OrcObjectMother {
 ```
 
 a|
-== Object pool [pattern-type]#creational#
+== Object pool [pattern-type]#{creational-type}#
 
 store expensive objects
 ```
@@ -138,7 +142,7 @@ private:
 ```
 
 a|
-== Property [pattern-type]#creational#
+== Property [pattern-type]#{creational-type}#
 
 dynamic properties set
 ```
@@ -156,7 +160,7 @@ private:
 ```
 
 a|
-== Prototype [pattern-type]#creational#
+== Prototype [pattern-type]#{creational-type}#
 
 only concrete instance knows its full state
 ```
@@ -173,7 +177,7 @@ private:
 ```
 
 a|
-== Resource acquisition is initialization (RAII) [pattern-type]#creational#
+== Resource acquisition is initialization (RAII) [pattern-type]#{creational-type}#
 
 prevent resource leaks
 ```
@@ -188,7 +192,7 @@ struct OrcShaman {
 ```
 
 a|
-== Singleton [pattern-type]#creational#
+== Singleton [pattern-type]#{creational-type}#
 
 allow only one instance
 ```
@@ -203,7 +207,7 @@ private:
 ```
 
 a|
-== MonoState [pattern-type]#creational#
+== MonoState [pattern-type]#{creational-type}#
 
 non global singleton replacement
 ```
@@ -224,7 +228,7 @@ private:
 
 
 a|
-== Abstract document [pattern-type]#structural#
+== Abstract document [pattern-type]#{structural-type}#
 
 dynamically manage properties
 ```
@@ -242,7 +246,7 @@ struct Orc : MonsterDocument, HasWeapon {
 ```
 
 a|
-== Adapter [pattern-type]#structural#
+== Adapter [pattern-type]#{structural-type}#
 
 adapt foreign api
 ```
@@ -254,7 +258,7 @@ struct OrcMonsterAdapter : Monster, Orc {
 ```
 
 a|
-== Bridge [pattern-type]#structural#
+== Bridge [pattern-type]#{structural-type}#
 
 ease separate changes of abstraction and implementation
 ```
@@ -270,7 +274,7 @@ struct Fighter : Monster {
 ```
 
 a|
-== Composite [pattern-type]#structural#
+== Composite [pattern-type]#{structural-type}#
 
 treat composite object same way as single
 ```
@@ -286,7 +290,7 @@ kingdom.addArea (new NothernRealm);
 ```
 
 a|
-== Decorator [pattern-type]#structural#
+== Decorator [pattern-type]#{structural-type}#
 
 dynamically add/remove behavior to object
 ```
@@ -300,7 +304,7 @@ Town* castle = new WallsDecorator (new Town ());
 ```
 
 a|
-== Event aggregator [pattern-type]#structural#
+== Event aggregator [pattern-type]#{structural-type}#
 
 gather all events in one place
 ```
@@ -313,7 +317,7 @@ struct Aggregator {
 ```
 
 a|
-== Extension object [pattern-type]#structural#
+== Extension object [pattern-type]#{structural-type}#
 
 provide additional interface to object without changing hierarchy
 ```
@@ -325,7 +329,7 @@ Kingdom kingdom (new GuardedCapital);
 ```
 
 a|
-== Facade [pattern-type]#structural#
+== Facade [pattern-type]#{structural-type}#
 
 single interface for several subsystems
 ```
@@ -339,7 +343,7 @@ struct Army {
 ```
 
 a|
-== Flyweight [pattern-type]#structural#
+== Flyweight [pattern-type]#{structural-type}#
 
 many similar objects with shared state
 ```
@@ -353,7 +357,7 @@ private:
 ```
 
 a|
-== Front controller [pattern-type]#structural#
+== Front controller [pattern-type]#{structural-type}#
 
 handle all requests in one place
 ```
@@ -365,7 +369,7 @@ struct Controller {
 ```
 
 a|
-== Marker [pattern-type]#structural#
+== Marker [pattern-type]#{structural-type}#
 
 indicate class behaviour
 ```
@@ -375,7 +379,7 @@ if (dynamic_cast<Agressive*>(monster)) monster->attack ();
 ```
 
 a|
-== Mock object [pattern-type]#structural#
+== Mock object [pattern-type]#{structural-type}#
 
 simulate only interested real object behaviour for testing
 ```
@@ -395,7 +399,7 @@ struct ShamanMock {
 ```
 
 a|
-== Module [pattern-type]#structural#
+== Module [pattern-type]#{structural-type}#
 
 group connected functions
 ```
@@ -409,7 +413,7 @@ struct ConsoleModule {
 ```
 
 a|
-== Proxy [pattern-type]#structural#
+== Proxy [pattern-type]#{structural-type}#
 
 add functionality to interface
 ```
@@ -424,7 +428,7 @@ private:
 ```
 
 a|
-== Service locator [pattern-type]#structural#
+== Service locator [pattern-type]#{structural-type}#
 
 ease and cache service discovery
 ```
@@ -446,7 +450,7 @@ private:
 
 
 a|
-== Blackboard [pattern-type]#behavioral#
+== Blackboard [pattern-type]#{behavioral-type}#
 
 integrate many modules in complex strategy
 ```
@@ -463,7 +467,7 @@ private:
 ```
 
 a|
-== Chain of responsibility [pattern-type]#behavioral#
+== Chain of responsibility [pattern-type]#{behavioral-type}#
 
 concrete unknown handler for concrete request
 ```
@@ -479,7 +483,7 @@ struct OrcFighter : RequestHandler {
 ```
 
 a|
-== Command [pattern-type]#behavioral#
+== Command [pattern-type]#{behavioral-type}#
 
 hold all required data to perform/abort event
 ```
@@ -493,7 +497,7 @@ struct MoveArmy : Command {
 ```
 
 a|
-== Delegation [pattern-type]#behavioral#
+== Delegation [pattern-type]#{behavioral-type}#
 
 provide functionality via composite part
 ```
@@ -505,7 +509,7 @@ struct OrcFighter {
 ```
 
 a|
-== Dependency injection [pattern-type]#behavioral#
+== Dependency injection [pattern-type]#{behavioral-type}#
 
 get constructed dependency instead of create by self
 ```
@@ -518,7 +522,7 @@ struct OrcFighter {
 ```
 
 a|
-== Feature toggle [pattern-type]#behavioral#
+== Feature toggle [pattern-type]#{behavioral-type}#
 
 dynamically enable/disable code branches
 ```
@@ -538,7 +542,7 @@ struct OrcFighter {
 ```
 
 a|
-== Intercepting filter [pattern-type]#behavioral#
+== Intercepting filter [pattern-type]#{behavioral-type}#
 
 add pre/post-processing to requests
 ```
@@ -559,7 +563,7 @@ private:
 ```
 
 a|
-== Interpreter [pattern-type]#behavioral#
+== Interpreter [pattern-type]#{behavioral-type}#
 
 handle asbtract syntax tree of domain specific language
 ```
@@ -572,7 +576,7 @@ struct Plus : Expression {
 ```
 
 a|
-== Iterator [pattern-type]#behavioral#
+== Iterator [pattern-type]#{behavioral-type}#
 
 traverse container without knowing its structure
 ```
@@ -589,7 +593,7 @@ struct OrcIterator : Iterator {
 ```
 
 a|
-== Mediator [pattern-type]#behavioral#
+== Mediator [pattern-type]#{behavioral-type}#
 
 hide objects interacion details
 ```
@@ -604,7 +608,7 @@ struct OrcTrainingCamp {
 ```
 
 a|
-== Memento [pattern-type]#behavioral#
+== Memento [pattern-type]#{behavioral-type}#
 
 save/restore object's state
 ```
@@ -620,7 +624,7 @@ struct Orc {
 ```
 
 a|
-== Method chaining [pattern-type]#behavioral#
+== Method chaining [pattern-type]#{behavioral-type}#
 
 group several method calls in one expression
 ```
@@ -635,7 +639,7 @@ Orc orc = Orc().setName ("Named").setWeapon (Sword());
 ```
 
 a|
-== Null object [pattern-type]#behavioral#
+== Null object [pattern-type]#{behavioral-type}#
 
 specific object for empty (null) behaviour
 ```
@@ -649,7 +653,7 @@ Orc* makeNewOrc () {
 ```
 
 a|
-== Observer [pattern-type]#behavioral#
+== Observer [pattern-type]#{behavioral-type}#
 
 notify subscribers about publisher events
 ```
@@ -670,7 +674,7 @@ struct Castle : Observable {
 ```
 
 a|
-== Servant [pattern-type]#behavioral#
+== Servant [pattern-type]#{behavioral-type}#
 
 add behaviour to other classes
 ```
@@ -680,7 +684,7 @@ struct Blacksmith {
 ```
 
 a|
-== Specification [pattern-type]#behavioral#
+== Specification [pattern-type]#{behavioral-type}#
 
 filter of validate objects with dynamic rules
 ```
@@ -703,7 +707,7 @@ void recruitCandidate (Orc& orc) {
 ```
 
 a|
-== State [pattern-type]#behavioral#
+== State [pattern-type]#{behavioral-type}#
 
 change behaviour by switching between object's internal states
 ```
@@ -724,7 +728,7 @@ struct ScaredState : State {
 ```
 
 a|
-== Strategy [pattern-type]#behavioral#
+== Strategy [pattern-type]#{behavioral-type}#
 
 use group of interchangeable algorithms
 ```
@@ -736,7 +740,7 @@ private:
 ```
 
 a|
-== Template method [pattern-type]#behavioral#
+== Template method [pattern-type]#{behavioral-type}#
 
 redefine parts of algorithms in subclasses
 ```
@@ -754,7 +758,7 @@ struct Orc {
 ```
 
 a|
-== Type tunnel [pattern-type]#behavioral#
+== Type tunnel [pattern-type]#{behavioral-type}#
 
 unified processing of different types
 ```
@@ -770,7 +774,7 @@ struct Dragon {
 ```
 
 a|
-== Visitor [pattern-type]#behavioral#
+== Visitor [pattern-type]#{behavioral-type}#
 
 apply operation on structure's elements with different interfaces
 ```
@@ -794,7 +798,7 @@ struct Fighter : Visitable {
 
 
 a|
-== Active object [pattern-type]#concurrency#
+== Active object [pattern-type]#{concurrency-type}#
 
 separate method execution and invocation threads
 ```
@@ -814,7 +818,7 @@ private:
 ```
 
 a|
-== Asynchronous method invocation [pattern-type]#concurrency#
+== Asynchronous method invocation [pattern-type]#{concurrency-type}#
 
 non-blocking call method in remote thread
 ```
@@ -829,7 +833,7 @@ struct Shaman {
 ```
 
 a|
-== Balking [pattern-type]#concurrency#
+== Balking [pattern-type]#{concurrency-type}#
 
 ignore call until ready
 ```
@@ -847,7 +851,7 @@ struct Barracks {
 ```
 
 a|
-== Binding properties [pattern-type]#concurrency#
+== Binding properties [pattern-type]#{concurrency-type}#
 
 synchronize several properties
 ```
@@ -863,7 +867,7 @@ house.isWarmProperty.bind (&houseHeater.isOnProperty);
 ```
 
 a|
-== Blockchain [pattern-type]#concurrency#
+== Blockchain [pattern-type]#{concurrency-type}#
 
 time ordered appendable chain of verified transaction blocks
 ```
@@ -884,7 +888,7 @@ private:
 ```
 
 a|
-== Double-checked locking [pattern-type]#concurrency#
+== Double-checked locking [pattern-type]#{concurrency-type}#
 
 reduce locking overhead for conditional
 ```
@@ -903,7 +907,7 @@ struct Tavern {
 ```
 
 a|
-== Guarded suspension [pattern-type]#concurrency#
+== Guarded suspension [pattern-type]#{concurrency-type}#
 
 block call until ready
 ```
@@ -923,7 +927,7 @@ struct Barracks {
 ```
 
 a|
-== Join [pattern-type]#concurrency#
+== Join [pattern-type]#{concurrency-type}#
 
 pipleine of sync/async messaging channels
 ```
@@ -944,7 +948,7 @@ Tavern tavern = Tavern ().when (visitorChannelThread1).and (staffChannelThread2)
 ```
 
 a|
-== Lock (Mutex) [pattern-type]#concurrency#
+== Lock (Mutex) [pattern-type]#{concurrency-type}#
 
 block if resource is busy
 ```
@@ -963,7 +967,7 @@ struct Tavern {
 ```
 
 a|
-== Monitor object [pattern-type]#concurrency#
+== Monitor object [pattern-type]#{concurrency-type}#
 
 conditional access to resource
 ```
@@ -986,7 +990,7 @@ struct Tavern {
 ```
 
 a|
-== Proactor [pattern-type]#concurrency#
+== Proactor [pattern-type]#{concurrency-type}#
 
 gather async requests and pass them to handlers asynchronously
 ```
@@ -1005,7 +1009,7 @@ struct Forge {
 ```
 
 a|
-== Reactor [pattern-type]#concurrency#
+== Reactor [pattern-type]#{concurrency-type}#
 
 gather async requests and pass them to handlers synchronously
 ```
@@ -1028,7 +1032,7 @@ struct Forge {
 ```
 
 a|
-== Read-write lock [pattern-type]#concurrency#
+== Read-write lock [pattern-type]#{concurrency-type}#
 
 allow read if noone is writing
 ```
@@ -1045,7 +1049,7 @@ struct Tavern {
 ```
 
 a|
-== Scheduler [pattern-type]#concurrency#
+== Scheduler [pattern-type]#{concurrency-type}#
 
 control resource usage time
 ```
@@ -1069,7 +1073,7 @@ struct Forge : Scheduler {
 ```
 
 a|
-== Thread pool [pattern-type]#concurrency#
+== Thread pool [pattern-type]#{concurrency-type}#
 
 execute task in idle thread from pool
 ```
