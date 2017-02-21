@@ -10,6 +10,7 @@
 :structural-type: structural
 :behavioral-type: behavioral
 :concurrency-type: concurrency
+:architectural-type: architectural
 
 
 [cols="6*"]
@@ -20,7 +21,7 @@
 a|
 == Abstract factory [pattern-type]#{creational-type}#
 
-create different hierarchies
+create similar hierarchies
 ```
 struct OrcFactory: ArmyFactory {
   Fighter* createFighter () override {
@@ -33,26 +34,14 @@ struct OrcFactory: ArmyFactory {
 ```
 
 a|
-== Active record [pattern-type]#{creational-type}#
-
-manupilate single row in database
-```
-struct Orc {
-  void save () {
-    execSql ("insert into orcs values (?,?,?)", bindValues);
-  }
-  void remove ();
-  static Orc* find (Name name);
-}
-```
-
-a|
 == Factory method [pattern-type]#{creational-type}#
 
-create single hierarchy
+create single object
 ```
 struct OrcBlacksmith : Blacksmith {
-  Weapon* createWeapon (WeaponType) override;
+  Weapon* createWeapon () override {
+    return new OrcWeapon;
+  }
 }
 ```
 
@@ -62,9 +51,15 @@ a|
 create object from parts
 ```
 struct OrcBuilder {
-  void setWeapon (Weapon);
-  void setArmor (Armor);
-  Orc build ();
+  void setWeapon (Weapon weapon) {
+    orcWeapon = weapon;
+  }
+  void setArmor (Armor armor) {
+    orcArmor = armor;
+  }
+  Orc build () {
+    return Orc (orcWeapon, orcArmor);
+  }
 }
 ```
 
@@ -73,13 +68,14 @@ a|
 
 wizard-like object creation
 ```
-struct OrcStepBuilder : TypeStep, WeaponStep, BuildStep {
-  WeaponStep* setType (Type) override; // TypeStep
-
-  BuildStep* setWeapon (Type) override; // WeaponStep
-  BuildStep* unarmed () override; // WeaponStep
-
-  Orc build () override; // BuildStep
+struct OrcBuilder : Armorer, Builder {
+  Builder* setArmor (Armor armor) override { // Armorer
+    orcArmor = armor;
+    return static_cast<Builder*>(this);
+  }
+  Orc build () override { // Builder
+    return Orc (orcWeapon);
+  }
 }
 ```
 
@@ -89,16 +85,13 @@ a|
 create object only when it is needed
 ```
 struct Castle {
-  Castle () : throneRoom (nullptr);
-  void enterThroneRoom (Character character) {
-    getThroneRoom ().enter (character);
-  }
+  Castle () : kitchen (nullptr);
 private:
-  ThroneRoom& getThroneRoom () {
-    if (!throneRoom) {
-      throneRoom = new ThroneRoom;
+  Kitchen& getKitchen () {
+    if (!kitchen_) {
+      kitchen = createKitchen ();
     }
-    return throneRoom;
+    return kitchen;
   }
 }
 ```
@@ -106,12 +99,12 @@ private:
 a|
 == Multiton [pattern-type]#{creational-type}#
 
-limit object variety
+limit objects variety
 ```
-struct District {
-  static District& get (Name name) {
-    static map<Name,District> districts;
-    return districts[name];
+struct Kingdom {
+  static Kingdom& get (Name name) {
+    static map<Name,Kingdom> kingdoms;
+    return kingdoms[name];
   }
 }
 ```
@@ -122,47 +115,35 @@ a|
 create preset objects
 ```
 struct OrcObjectMother {
-  Orc* createAngry ();
-  Orc* createScared ();
+  Orc createAngry () {
+    return Orc (State::Angry);
+  }
+  Orc createWounded () {
+    Orc orc;
+    orc.setHealth (90);
+    return orc;
+  }
 }
 ```
 
 a|
 == Object pool [pattern-type]#{creational-type}#
 
-store expensive objects
+store and reuse expensive objects
 ```
-struct Armory {
-  Weapon* acquire ();
-  void release (Weapon* returned);
+struct Museum {
+  Artifact& acquire ();
+  void release (Artifact& returned);
 private:
-  set<Weapon*> weapons;
-  set<Weapon*> taken;
+  set<Artifact> all;
+  set<Artifact*> taken;
 } 
-```
-
-a|
-== Property [pattern-type]#{creational-type}#
-
-dynamic properties set
-```
-struct Orc : Prototype {
-  bool set (Stat, Value) override;
-  bool has (Stat) override;
-  Value get (Stat) override;
-  void remove (Stat) override;
-
-  void waagh ();
-private:
-  map<Stat, Value> properties;
-}
-
 ```
 
 a|
 == Prototype [pattern-type]#{creational-type}#
 
-only concrete instance knows its full state
+create objects by copying prototype
 ```
 struct Monster {
   virtual Monster* clone () = 0;
@@ -179,14 +160,14 @@ private:
 a|
 == Resource acquisition is initialization (RAII) [pattern-type]#{creational-type}#
 
-prevent resource leaks
+make object responsible for its resources
 ```
 struct OrcShaman {
   OrcShaman () {
     ManaSource::addLeacher (this);
   }
   ~OrcShaman () {
-    ManaSounrce::removeLeacher (this);
+    ManaSource::removeLeacher (this);
   }
 }
 ```
@@ -196,29 +177,32 @@ a|
 
 allow only one instance
 ```
-struct EarthCore {
-  static EarthCore& instance () {
-    static EarthCore core;
-    return core;
+struct Earth {
+  Earth () = delete;
+  static Earth& instance () {
+    static Earth earth;
+    return earth;
+  }
+  int getRadius () const {
+    return radius;
   }
 private:
-  EarthCore ();
+  int radius;
 }
 ```
 
 a|
 == MonoState [pattern-type]#{creational-type}#
 
-non global singleton replacement
+many instances with single state
 ```
-struct Balancer {
-  void serve (Request) {
-    Server* server = nextServer ();
-    server->serve (Request);
+struct Earth {
+  Earth ();
+  int getRadius () const {
+    return Earth::radius;
   }
 private:
-  int lastServed;
-  list<Server*> servers;
+  static int radius;
 }
 ```
 
@@ -1088,6 +1072,21 @@ struct Tavern {
     if (Event* event = queue.takeNext ()) staff.run (event);
     else break;
   }
+}
+```
+
+
+a|
+== Active record [pattern-type]#{architectural-type}#
+
+manupilate single row in database
+```
+struct Orc {
+  void save () {
+    execSql ("insert into orcs values (?,?,?)", bindValues);
+  }
+  void remove ();
+  static Orc* find (Name name);
 }
 ```
 
