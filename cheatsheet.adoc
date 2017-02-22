@@ -219,12 +219,10 @@ dynamically manage properties
 struct MonsterDocument {
   void set (Type, Value);
   Value get (Type);
-private:
-  map<Type, Value> properties;
 }
-struct Orc : MonsterDocument, HasWeapon {
-  Weapon getWeapon () override { // HasWeapon
-    return static_cast<Weapon>(get(Type::Weapon));
+struct Orc : MonsterDocument, Armed {
+  Weapon weapon () override { // Armed
+    return Weapon (get (Type::Weapon));
   }
 }
 ```
@@ -234,9 +232,14 @@ a|
 
 adapt foreign api
 ```
-struct OrcMonsterAdapter : Monster, Orc {
+struct OrcTypeAdapter : Monster, Orc {
   void attack () override {
     Orc::smash ();
+  }
+}
+struct OrcObjectAdapter : Monster {
+  void attack () override {
+    orc.smash ();
   }
 }
 ```
@@ -244,16 +247,16 @@ struct OrcMonsterAdapter : Monster, Orc {
 a|
 == Bridge [pattern-type]#{structural-type}#
 
-ease separate changes of abstraction and implementation
+separate interface and implementation changes
 ```
-struct Orc : Creature {
-  void attackImpl () override;
-}
-struct Fighter : Monster {
+struct Fighter : Soldier {
   Fighter (Creature* impl);
   void attack () override {
     impl->attackImpl ();
   }
+}
+struct Orc : Creature {
+  void attackImpl () override;
 }
 ```
 
@@ -264,13 +267,12 @@ treat composite object same way as single
 ```
 struct Kingdom : Area {
   double square () override {
-    return accumulate (children, Area::square);
+    return sum (owned, Area::square ());
   }
   void addArea (Area*) override;
 private:
-  list<Area*> children;
+  set<Area*> owned;
 }
-kingdom.addArea (new NothernRealm);
 ```
 
 a|
@@ -278,13 +280,13 @@ a|
 
 dynamically add/remove behavior to object
 ```
-struct WallsDecorator : public Town {
-  WallsDecorator (Town* decorated);
+struct Walled : public Town {
+  Walled (Town* decorated);
   int strength () override {
     return decorated->strength () + 10;
   }
 }
-Town* castle = new WallsDecorator (new Town ());
+Town* castle = new Walled (new Town ());
 ```
 
 a|
@@ -293,23 +295,27 @@ a|
 gather all events in one place
 ```
 struct Aggregator {
-  void registerSubscriber (Subscriber);
+  void subscribe (Subscriber*);
   void publish (Event event) {
-    for_each (subscribers, Subscriber::handle (event));
+    each (subscribers,
+      Subscriber::handle (event));
   }
 }
+officer.subscribe (fighter);
+officer.publish (AttackEvent ());
 ```
 
 a|
 == Extension object [pattern-type]#{structural-type}#
 
-provide additional interface to object without changing hierarchy
+provide additional interface without inherritance
 ```
 struct Kingdom {
-  Kingdom (Capital*);
-  Capital* getCapitalExtension ();
+  Kingdom (Capital* capital);
+  Capital* getCapital () {
+    return capital;
+  }
 }
-Kingdom kingdom (new GuardedCapital);
 ```
 
 a|
@@ -347,8 +353,10 @@ handle all requests in one place
 ```
 struct Controller {
   void handle (Request request) {
-    getProcessor ().process (request);
+    getProcessor (request.type)
+      .process (request);
   }
+  Processor getProcessor (RequestType);
 }
 ```
 
@@ -359,27 +367,10 @@ indicate class behaviour
 ```
 struct Orc : Agressive {
 }
-if (dynamic_cast<Agressive*>(monster)) monster->attack ();
-```
-
-a|
-== Mock object [pattern-type]#{structural-type}#
-
-simulate only interested real object behaviour for testing
-```
-struct Shaman {
-  Spell* castSpell () {
-    if (enoughMana () && correctMoonPhase () && isRested () ..) {
-      return new Spell;
-    }
-    return nullptr;
-  }
-}
-struct ShamanMock {
-  Spell* castSpell () {
-    return new Spell;
-  }
-}
+if (dynamic_cast<Agressive*>(monster))
+  monster->attack ();
+if (dynamic_cast<Defensive*>(monster))
+  monster->guard ();
 ```
 
 a|
@@ -391,23 +382,43 @@ struct ConsoleModule {
   void prepare ();
   void unprepare ();
   static ConsoleModule& instance ();
-  void print (variant);
+  void print (Variant);
   variant scan ();
+}
+```
+
+a|
+== Mock object [pattern-type]#{structural-type}#
+
+partially simulate object behaviour for testing
+```
+struct Shaman {
+  Spell* castSpell () {
+    openSpellbook ();
+    Glyph* glyph = findSpell ();
+    return glyph->cast ();
+  }
+}
+struct ShamanMock {
+  Spell* castSpell () {
+    return new MightySpell ();
+  }
 }
 ```
 
 a|
 == Proxy [pattern-type]#{structural-type}#
 
-add functionality to interface
+add behaviour to existing interface
 ```
-struct GuardedArmory : Armory {
-  void enter (Monster monster) override {
-    if (looksLikeOrc (monster)) armory->enter (monster);
-    else logFailure (monster);
+struct GuardedArmoryProxy : Armory {
+  GuardedArmory (Armory* armory);
+  void enter(Monster& monster) override{
+    if (looksLikeOrc (monster))
+      armory->enter (monster);
+    else
+      logFailure (monster);
   }
-private:
-  Armory *armory;
 }
 ```
 
@@ -417,14 +428,14 @@ a|
 ease and cache service discovery
 ```
 struct OrcIntelligence {
-  static Area locate (Faction faction) {
-    if (!cache.contains (faction)) {
-      cache[faction] = lookFor (faction);
+  static Area locate (Army army) {
+    if (!lastSeen.contains (army)) {
+      lastSeen[army] = lookFor (army);
     }
-    return cache[faction];
+    return lastSeen[army];
   }
 private:
-  LastSeen<Faction, Area> cache;
+  map<Army, Area> lastSeen;
 }
 ```
 
