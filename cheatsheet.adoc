@@ -6,11 +6,11 @@
 :noheader:
 :nofooter:
 
-:creational-type: creational
-:structural-type: structural
-:behavioral-type: behavioral
-:concurrency-type: concurrency
-:architectural-type: architectural
+:creational-type: creation
+:structural-type: structure
+:behavioral-type: behavior
+:concurrency-type: async
+:architectural-type: architecture
 
 
 [cols="6*"]
