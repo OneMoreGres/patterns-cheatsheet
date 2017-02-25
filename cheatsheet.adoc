@@ -794,34 +794,32 @@ struct Melee : Visitable {
 a|
 == Active object [pattern-type]#{concurrency-type}#
 
-separate method execution and invocation threads
+separate execution and invocation threads
 ```
 struct ActiveObject {
   void addCommand (Command command) {
-    enqueue (command);
+    this->commands << command;
   }
   ~ActiveObject () {
-    Thread thread (&ActiveObject::run, this);
+    thread thread ([this]() {
+      each (commands, Command::exec ());
+    }
     thread.join ();
-  }
-private:
-  void run () {
-    processCommands ();
   }
 }
 ```
 
 a|
-== Asynchronous method invocation [pattern-type]#{concurrency-type}#
+== Async method call [pattern-type]#{concurrency-type}#
 
-non-blocking call method in remote thread
+non-blocking method call in remote thread
 ```
 struct Shaman {
-  void resurrect (Creature& creature) {
-    SoulFinder& soulFinder = ghostWorld.askToSoul (creature);
-    eadAndDrink ();
-    if (!soulFinder.isReady ()) goEatAndDrink ();
-    ghostWorld.getFoundSoul (soulFinder); // blocks if not ready
+  void resurrect (Creature& dead) {
+    Finder& remote = astral.soul (dead);
+    if (!remote.isReady ()) drink ();
+    Soul& soul = astral.takeSoul (remote); // blocks
+    dead.revive (soul);
   }
 }
 ```
@@ -829,17 +827,17 @@ struct Shaman {
 a|
 == Balking [pattern-type]#{concurrency-type}#
 
-ignore call until ready
+ignore calls until ready
 ```
 struct Barracks {
   Fighter* trainRecruit () {
-    MutexLocker lock;
-    if (recruits.isEmpty()) return nullptr;
-    return train (recruits.takeFirst ());
+    AutoLock lock;
+    if (!gotRecruits ()) return {};
+    return train (takeRecruit ());
   }
   void addRecruit (Recruit recruit) {
-    MutexLocker lock;
-    recruits << recruit;
+    AutoLock lock;
+    addRecruit (recruit);
   }
 }
 ```
@@ -849,35 +847,30 @@ a|
 
 synchronize several properties
 ```
-template<class T>
-struct Property<T> {
+template<class T> struct Property<T> {
   void bind (Property<T>* other);
   void set (T value) {
-    preventInfiniteRecursionIfBoundTwoWay ();
+    preventInfiniteRecursion ();
     other->set (value);
   }
 }
-house.isWarmProperty.bind (&houseHeater.isOnProperty);
+house.isWarm.bind (&heater.isOn);
 ```
 
 a|
 == Blockchain [pattern-type]#{concurrency-type}#
 
-time ordered appendable chain of verified transaction blocks
+ordered appendable chain of verified transactions
 ```
 struct OrcHistorian : BlockchainNode {
   bool addLegend (Legend legend) {
-    if (verify (legend)) {
-      if (allAgree (knownHistoricans, &OrcHistorian::addLegend, legend)) {
-        legends << legend;
-        return true;
-      }
-    }
-    return false;
+    if (!verify (legend)) return false;
+    bool accepted = all (others, &OrcHistorian::addLegend (legend))
+    if (accepted) writeLegend (legend);
+    return accepted;
   }
 private:
-  list<OrcHistorian> knownHistoricans;
-  list<Legend> legends;
+  list<OrcHistorian> others;
 }
 ```
 
@@ -887,15 +880,11 @@ a|
 reduce locking overhead for conditional
 ```
 struct Tavern {
-  void close () {
-    if (state == Empty) {
-      MutexLocker lock;
-      if (state == Empty) {
-        state = Closed;
-        return;
-      }
-    }
-    serveCustomers ();
+  bool close () {
+    if (state != Empty) return false;
+    // be sure in interested case
+    AutoLock lock;
+    if (state == Empty) state = Closed;
   }
 }
 ```
@@ -908,14 +897,14 @@ block call until ready
 struct Barracks {
   Fighter* trainRecruit () {
     while (true) {
-      MutexLocker lock;
-      if (!recruits.isEmpty()) return train (recruits.takeFirst ());
+      if (AutoLock lock, gotRecruits())
+        return train (takeRecruit ());
       wait ();
     }
   }
   void addRecruit (Recruit recruit) {
-    MutexLocker lock;
-    recruits << recruit;
+    AutoLock lock;
+    addRecruit (recruit);
   }
 }
 ```
@@ -925,20 +914,14 @@ a|
 
 pipleine of sync/async messaging channels
 ```
-using Channel = Join;
-using Pipe = Chord;
-struct NewVisitor : Channel {
-  void put (Message* visitor) override;
-  Object* get () override;
+struct Channel {
+  void put (Message* message);
+  Message* get ();
 }
-struct FreeStaff : Channel {
-  void put (Message* staff) override;
-  Object* get () override;
+struct Forge : Pipe {
+  void craft (Message* iron, Message* crafter);
 }
-struct Tavern : Pipe {
-  void serve (Object* visitor);
-}
-Tavern tavern = Tavern ().when (visitorChannelThread1).and (staffChannelThread2).do (Tavern::serve);
+Tavern ().when (minesChannel).and (craftersChannel).do (Forge::craft);
 ```
 
 a|
@@ -948,12 +931,12 @@ block if resource is busy
 ```
 struct Tavern {
   void enter () {
-    lock.acquire ();
+    lock.acquire (); // blocks if busy
     ++customers;
     lock.release ();
   }
   void leave () {
-  lock.acquire ();
+    lock.acquire (); // blocks if busy
     --customers;
     lock.release ();
   }
@@ -963,22 +946,21 @@ struct Tavern {
 a|
 == Monitor object [pattern-type]#{concurrency-type}#
 
-conditional access to resource
+allow conditional access to guarded resourse
 ```
 struct Tavern {
   void enter () {
     lock.acquire ();
     while (isFull ()) {
-      monitor.wait (lock, customersChanged); // release on sleep, acquire on wake
+      monitor.wait (lock, queue1); // release on sleep, acquire on wake
     }
     ++customers;
     lock.release ();
   }
   void leave () {
-    lock.acquire ();
+    AutoLock lock(this->lock)
     --customers;
-    monitor.wakeOne (customersChanged);
-    lock.release ();
+    monitor.wakeOne (queue1);
   }
 }
 ```
@@ -986,58 +968,54 @@ struct Tavern {
 a|
 == Proactor [pattern-type]#{concurrency-type}#
 
-gather async requests and pass them to handlers asynchronously
+gather async requests and send to async handlers
 ```
-using Mine, Blacksmith = AsyncProcessor;
 struct Forge {
   void exec () {
-    forEach (mines, &Mine::asyncDig,
-      static_cast<CompleteHandler>([this](Iron iron) {craft (iron);}));
+    each (mines, Mine::startDig (), static_cast<OnDone> (Forge::craft));
   }
   void craft (Iron iron) {
-    blacksmiths.next ()->asyncCraft (iron,
-      static_cast<CompleteHandler>([this](Weapon weapon) {putOnShelve (weapon);}));
+    nextCrafter ()->asyncCraft (iron, static_cast<OnDone> (::deliver));
   }
-  void putOnShelve (Weapon);
 }
 ```
 
 a|
 == Reactor [pattern-type]#{concurrency-type}#
 
-gather async requests and pass them to handlers synchronously
+gather async requests and send to sync handlers
 ```
-using Mine, Blacksmith = AsyncProcessor;
 struct Forge {
   void exec () {
     while (true) {
-      for (Iron& iron: getReadyIronFromAllMines ()) {
-        craft (iron);
+      for (Iron& i: getAllReadyIron()) {
+        craft (i);
       }
-      waitForMoreIron (timeout);
+      waitForMoreIronReady (timeout);
     }
   }
   void craft (Iron iron) {
-    Weapon weapon = blacksmiths.next ()->craft (iron);
-    putOnShelve (weapon);
+    ::deliver (nextCrafter ()->craft (iron));
   }
-  void putOnShelve (Weapon);
 }
 ```
 
 a|
 == Read-write lock [pattern-type]#{concurrency-type}#
 
-allow read if noone is writing
+allow concurrent reads, but exclusive writes
 ```
 struct Tavern {
   list<Customer> customers () const {
-    readWriteLock.readLock (); // blocks if someone is writing
-    return customers;
+    rwLock.readAcquire (); // allow many
+    auto result = customers;
+    rwLock.readRelease ();
+    return result;
   }
   void addCustomer (Customer customer) {
-    readWriteLock.writeLock (); // blocks if someeone is reading
+    rwLock.writeAcquire (); // allow one
     customers << customer;
+    rwLock.writeRelease ();
   }
 }
 ```
@@ -1048,18 +1026,18 @@ a|
 control resource usage time
 ```
 struct Forge : Scheduler {
-  void requestFurnaceAccess (Blacksmith user) {
+  void requestFurnace (Crafter user) {
     plan.add (user);
   }
   void exec () {
     while (true) {
-      Blacksmith& currentUser = furnace.user ();
-      if (!currentUser.isFinished ()) {
-        currentUser.pause ();
-        plan.add (currentUser);
+      Crafter& current = furnace.user();
+      if (!current.isFinished ()) {
+        current.pause ();
+        plan.add (current);
       }
-      Blacksmith& nextUser = plan.takeNext ();
-      furnace.setUser (nextUser);
+      Crafter& next = plan.takeNext ();
+      furnace.setUser (next);
       waitForNextEvent (plan);
     }
   }
@@ -1075,12 +1053,14 @@ using Staff = Thread;
 struct Tavern {
   void addVisitor (Visitor visitor) {
     queue << new ServeEvent (visitor);
-    if (gotIdleStaff ()) processQueue ();
+    if (gotIdleStaff ()) processQueue();
   }
   void processQueue () {
-  while (Staff* staff = nextIdleStaff ()) {
-    if (Event* event = queue.takeNext ()) staff.run (event);
-    else break;
+    while (Staff* staff = nextIdle ()) {
+      if (Event* e = queue.takeNext ())
+        staff.run (e);
+      else break;
+    }
   }
 }
 ```
@@ -1093,9 +1073,11 @@ manupilate single row in database
 ```
 struct Orc {
   void save () {
-    execSql ("insert into orcs values (?,?,?)", bindValues);
+    run ("insert into orcs values(?,?)", id, name);
   }
-  void remove ();
+  void remove () {
+    run ("delete from orc where id = ?", id);
+  }
   static Orc* find (Name name);
 }
 ```
