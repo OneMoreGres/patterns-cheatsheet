@@ -149,11 +149,11 @@ struct Monster {
   virtual Monster* clone () = 0;
 }
 struct MonsterFactory {
-  Monster* create (MonsterType type) {
+  Monster* create (Type type) {
     return prototypes[type]->clone ();
   }
 private:
-  map<MonsterType, Monster*> prototypes;
+  map<Type, Monster*> prototypes;
 }
 ```
 
@@ -267,7 +267,7 @@ treat composite object same way as single
 ```
 struct Kingdom : Area {
   double square () override {
-    return sum (owned, Area::square ());
+    return sum (owned, Area::square());
   }
   void addArea (Area*) override;
 private:
@@ -413,11 +413,11 @@ add behaviour to existing interface
 ```
 struct GuardedArmoryProxy : Armory {
   GuardedArmory (Armory* armory);
-  void enter(Monster& monster) override{
-    if (looksLikeOrc (monster))
-      armory->enter (monster);
+  void enter(Orc& orc) override {
+    if (looksFriendly (orc))
+      armory->enter (orc);
     else
-      logFailure (monster);
+      logFailure (orc);
   }
 }
 ```
@@ -452,7 +452,7 @@ integrate many modules in complex strategy
 struct Intelligence {
   void updateDisposition () {
     // gather knowledge from sources
-    each (scouts, Source::update (map));
+    each (scouts, Source::update(map));
     // process knowledge
     correctConflicts (map);
     // configure sources
@@ -471,13 +471,13 @@ unknown concrete handler for concrete request
 ```
 struct OrcFighter : RequestHandler {
   OrcFighter (RequestHandler* next);
-  void handle(Request request) override{
-    if (request.type == Type::Attack) {
+  void handle(Request req) override {
+    if (req.type == Type::Attack) {
       attack ();
       // more logic
-      if (++request.done > 10) return;
+      if (++req.done > 10) return;
     }
-    if (next) next->handle (request);
+    if (next) next->handle (req);
   }
 }
 ```
@@ -532,7 +532,7 @@ dynamically enable/disable code branches
 ```
 struct OrcFighter {
   void attack () {
-    if (FeatureManager::isOn (Stealth)){
+    if (FeatureToggle::isOn(Stealth)){
       hiddenAttack ();
     }
     else {
@@ -690,7 +690,7 @@ struct BySkill : Specification {
   }
 }
 void recruit (Orc& orc) {
-  auto filter = BySkill().and(ByMana());
+  auto filter = BySkill ().and (ByMana ());
   if (filter.check (orc)) {
     assignForImportantMission (orc);
   }
@@ -780,7 +780,7 @@ struct ArmyMeleePower : Visitor {
   void visit (Ranged& orc) override {}
 }
 struct Melee : Visitable {
-  void accept (Visitor& visitor) override {
+  void accept (Visitor& visitor) override{
     visitor.visit (*this);
   }
 }
@@ -802,7 +802,7 @@ struct ActiveObject {
   }
   ~ActiveObject () {
     thread thread ([this]() {
-      each (commands, Command::exec ());
+      each (commands, Command::exec());
     }
     thread.join ();
   }
@@ -816,9 +816,9 @@ non-blocking method call in remote thread
 ```
 struct Shaman {
   void resurrect (Creature& dead) {
-    Finder& remote = astral.soul (dead);
+    Finder& remote = astral.soul(dead);
     if (!remote.isReady ()) drink ();
-    Soul& soul = astral.takeSoul (remote); // blocks
+    Soul& soul = astral.takeSoul(remote); // blocks
     dead.revive (soul);
   }
 }
@@ -988,7 +988,7 @@ gather async requests and send to sync handlers
 struct Forge {
   void exec () {
     while (true) {
-      for (Iron& i: getAllReadyIron()) {
+      for (Iron& i: getAllReadyIron()){
         craft (i);
       }
       waitForMoreIronReady (timeout);
@@ -1026,18 +1026,18 @@ a|
 control resource usage time
 ```
 struct Forge : Scheduler {
-  void requestFurnace (Crafter user) {
+  void requestAnvil (Crafter user) {
     plan.add (user);
   }
   void exec () {
     while (true) {
-      Crafter& current = furnace.user();
+      Crafter& current = anvil.user();
       if (!current.isFinished ()) {
         current.pause ();
         plan.add (current);
       }
       Crafter& next = plan.takeNext ();
-      furnace.setUser (next);
+      anvil.setUser (next);
       waitForNextEvent (plan);
     }
   }
@@ -1053,10 +1053,10 @@ using Staff = Thread;
 struct Tavern {
   void addVisitor (Visitor visitor) {
     queue << new ServeEvent (visitor);
-    if (gotIdleStaff ()) processQueue();
+    if (gotIdle ()) processQueue();
   }
   void processQueue () {
-    while (Staff* staff = nextIdle ()) {
+    while (Staff* staff = nextIdle()) {
       if (Event* e = queue.takeNext ())
         staff.run (e);
       else break;
