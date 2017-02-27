@@ -178,7 +178,6 @@ a|
 allow only one instance
 ```
 struct Earth {
-  Earth () = delete;
   static Earth& instance () {
     static Earth earth;
     return earth;
@@ -187,6 +186,7 @@ struct Earth {
     return radius;
   }
 private:
+  Earth ();
   int radius;
 }
 ```
