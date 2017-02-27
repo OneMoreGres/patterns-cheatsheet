@@ -1,3 +1,9 @@
-Short cheatsheet of software design patterns.
+= Short cheatsheet of software design patterns
 
-Rendered pdf is in 'releases'.
+Rendered pdf is in github's 'releases' page.
+
+== Steps to obtain printable format
+
+- install link:http://asciidoctor.org/[asciidoctor]
+- execute ```asciidoctor cheatsheet.adoc```
+- open/print cheatsheet.html
