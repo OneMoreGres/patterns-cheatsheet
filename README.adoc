@@ -1,1 +1,3 @@
 Short cheatsheet of software design patterns.
+
+Rendered pdf is in 'releases'.
