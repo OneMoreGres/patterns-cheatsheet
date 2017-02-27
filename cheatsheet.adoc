@@ -85,13 +85,13 @@ a|
 create object only when it is needed
 ```
 struct Castle {
-  Castle () : kitchen_ (nullptr);
+  Castle () : kitchen (nullptr);
 private:
   Kitchen& getKitchen () {
-    if (!kitchen_) {
+    if (!kitchen) {
       kitchen = createKitchen ();
     }
-    return kitchen;
+    return *kitchen;
   }
 }
 ```
